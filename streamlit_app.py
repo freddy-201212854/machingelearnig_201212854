@@ -1,38 +1,24 @@
-from math import degrees
-import streamlit as st
-import pandas as pd
-import os
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import confusion_matrix
 from matplotlib.colors import ListedColormap
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import GaussianNB
-from sklearn.preprocessing import LabelBinarizer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, accuracy_score
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.impute import SimpleImputer
-import sys
-from pandas.errors import ParserError
-import time
-import altair as altpi
-import matplotlib.cm as cm
-import base64
-from bokeh.io import output_file, show
-from bokeh.layouts import column
-from bokeh.layouts import layout
-from bokeh.plotting import figure
-from bokeh.models import Toggle, BoxAnnotation
-from bokeh.models import Panel, Tabs
-from bokeh.palettes import Set3
-from sklearn.metrics import mean_squared_error, r2_score
-import time
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from soupsieve import select
+import streamlit as st
+import numpy as np
+
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+
+from sklearn.decomposition import PCA
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error, r2_score
+
+from io import StringIO
+import pandas as pd
 
 import pip
 pip.main(["install", "openpyxl"])

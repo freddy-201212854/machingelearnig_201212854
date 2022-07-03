@@ -1,0 +1,8 @@
+pandas
+matplotlib
+sklearn
+bokeh
+six
+IPython
+pydotplus
+graphviz
