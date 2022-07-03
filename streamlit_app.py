@@ -1,4 +1,3 @@
-from matplotlib.colors import ListedColormap
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
@@ -14,6 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from matplotlib.colors import ListedColormap
 
 from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error, r2_score
 
