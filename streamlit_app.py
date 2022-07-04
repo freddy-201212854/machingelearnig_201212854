@@ -1,7 +1,10 @@
 from matplotlib.colors import ListedColormap
+from sklearn import tree
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import GaussianNB
-from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import LabelEncoder, PolynomialFeatures, StandardScaler
+from sklearn.tree import DecisionTreeClassifier
 from soupsieve import select
 import streamlit as st
 import numpy as np
@@ -15,7 +18,7 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 
-from sklearn.metrics import accuracy_score, confusion_matrix, mean_squared_error, r2_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, mean_squared_error, r2_score
 
 from io import StringIO
 import pandas as pd
@@ -258,6 +261,11 @@ if fp is not None:
             chooseColumns = st.multiselect(
                 "Seleccionar columnas a clasificar", (df.drop(columns=[choose]).columns))
 
+            valuesPredict = np.array([])
+            for column in chooseColumns:
+                valuesPredict = np.append(
+                    valuesPredict, st.text_input("Ingrese el valor de " + column + ": "))
+
             X = df[chooseColumns]
             y = df[choose]
             try:
@@ -299,13 +307,105 @@ if fp is not None:
                 plt.show()
                 st.pyplot(fig2)
             elif(classifier_name == 'Predicción de la tendencia'):
-                data_predict = st.number_input(
-                    "Ingrese valor a predecir")
+                try:
+                    classifier = GaussianNB()
+                    classifier.fit(X_train, y_train)
 
-                classifier = GaussianNB()
-                classifier.fit(X_train, y_train)
-                XX = [[data_predict]]
-                st.write(classifier.predict(XX))
+                    array_predict = []
+                    for x in valuesPredict:
+                        array_predict.append(float(x))
+                    # st.write(str(array_predict))
+
+                    pred = classifier.predict([array_predict])
+                    st.write("Predicción: ", str(pred))
+                except:
+                    st.write("Seleccione o ingrese los campos necesarios")
+
+        elif (dataset_name == 'Clasificador de Árboles de decisión'):
+            options = df.columns
+            choose = st.selectbox("Seleccionar columna objetivo", (options))
+            chooseColumns = st.multiselect(
+                "Seleccionar columnas a clasificar", (df.drop(columns=[choose]).columns))
+
+            calculatePredict = st.radio(
+                'Realizar estandarización', ('No', 'Si'))
+            valuesPredict = np.array([])
+            if calculatePredict == 'Si':
+                for column in chooseColumns:
+                    valuesPredict = np.append(
+                        valuesPredict, st.text_input("Ingrese el valor de " + column + ": "))
+
+            X = df[chooseColumns]
+            y = df[choose]
+
+            y = df[choose].values
+            le = LabelEncoder()
+            y = le.fit_transform(y.flatten())
+
+            try:
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=0.2, random_state=0)
+            except Exception as e:
+                st.write(
+                    'Ha ocurrido un error al clasificar el algoritmo de árboles de decisión', e)
+
+            clf = DecisionTreeClassifier(
+                criterion="gini", random_state=42, max_depth=3, min_samples_leaf=5)
+            clf = clf.fit(X_train, y_train)
+            y_pred = clf.predict(X_test)
+            st.write("Precisión de los datos:")
+            st.write(accuracy_score(y_test, y_pred))
+            if calculatePredict == 'Si':
+                valuesPredict = valuesPredict.reshape(1, -1)
+                pred = clf.predict(valuesPredict)
+                st.write("Predicción: ",
+                         str(le.inverse_transform(pred)))
+            dot_data = tree.export_graphviz(clf, out_file=None)
+            st.graphviz_chart(dot_data)
+
+        elif (dataset_name == 'Redes Neuronales'):
+            options = df.columns
+            choose = st.selectbox("Seleccionar columna objetivo", (options))
+            chooseColumns = st.multiselect(
+                "Seleccionar columnas a clasificar", (df.drop(columns=[choose]).columns))
+
+            calculatePredict = st.radio(
+                'Realizar estandarización', ('No', 'Si'))
+            valuesPredict = np.array([])
+            if calculatePredict == 'Si':
+                for column in chooseColumns:
+                    valuesPredict = np.append(
+                        valuesPredict, st.text_input("Ingrese el valor de " + column + ": "))
+
+            X = df[chooseColumns]
+            y = df[choose]
+
+            y = df[choose].values
+            le = LabelEncoder()
+            y = le.fit_transform(y.flatten())
+
+            try:
+                X_train, X_test, y_train, y_test = train_test_split(
+                    X, y, test_size=0.2, random_state=0)
+            except Exception as e:
+                st.write(
+                    'Ha ocurrido un error al clasificar el algoritmo de árboles de decisión', e)
+
+            scaler = StandardScaler()
+            scaler.fit(X_train)
+            X_train = scaler.transform(X_train)
+            X_test = scaler.transform(X_test)
+            # Instantiate the Classifier and fit the model.
+            clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
+                                hidden_layer_sizes=(5, 2), random_state=1)
+            clf.fit(X_train, y_train)
+            y_pred = clf.predict(X_test)
+            score = accuracy_score(y_test, y_pred) * 100
+            report = classification_report(y_test, y_pred)
+            st.text("Accuracy of Neural Network model is: ")
+            st.write(score, "%")
+            st.text("Report of Neural Network model is: ")
+            st.write(report)
 
     except Exception as e:
         st.write('Ha ocurrido un error con el archivo cargado', e)
