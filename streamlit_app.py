@@ -27,6 +27,7 @@ import pip
 pip.main(["install", "openpyxl"])
 
 st.title('Machine Learning 20121854')
+st.sidebar.title('Panel de opciones')
 fp = st.sidebar.file_uploader(
     "Carga de Archivos", type=['csv', 'xls', 'xlsx', 'json', ])
 
@@ -36,8 +37,11 @@ dataset_name = st.sidebar.selectbox(
      "Clasificador de Árboles de decisión", "Redes Neuronales")
 )
 
-st.write(f"## {dataset_name}")
-
+if fp is not None:
+    st.write(f"## {dataset_name}")
+else:
+    st.markdown(
+        f'<h6 style="color:gray;font-size:14;">{"Seleccione un archivo desde el panel de opciones y realice las operaciones con los algoritmos disponibles."}</h6>', unsafe_allow_html=True)
 classifier_name = st.sidebar.selectbox(
     'Seleccionar Operación',
     ('Graficar Puntos', 'Definir función de tendencia', 'Predicción de la tendencia')
@@ -52,14 +56,18 @@ if fp is not None:
         file_detail = {"file": fp.name,
                        "filetype": fp.type, "filesize": fp.size}
         st.write(file_detail)
+
         if (fp.type == 'text/csv'):
             df = pd.read_csv(fp)
-            st.dataframe(df)
+            # st.dataframe(df)
         elif (fp.type == 'application/vnd.ms-excel' or fp.type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'):
             df = pd.read_excel(fp)
-            st.dataframe(df)
+            # st.dataframe(df)
         elif (fp.type == 'application/json'):
             df = pd.read_json(fp)
+            # st.dataframe(df)
+
+        if st.checkbox('Mostrar tabla de datos'):
             st.dataframe(df)
 
         if (dataset_name == 'Regresión Lineal'):
@@ -78,7 +86,9 @@ if fp is not None:
                     a1 = alg.coef_
                     a2 = alg.intercept_
 
-                    st.write(a1, "x + ", a2)
+                    st.write(f"Coeficiente: {a1[0]}")
+                    st.write(f"Interceptor: {a2}")
+                    st.write("y = ", a1[0], "*x +", a2)
 
                     fig = plt.figure(figsize=(3, 3))
                     plt.scatter(x=df[ParamsX], y=df[ParamsY])
@@ -109,12 +119,14 @@ if fp is not None:
                 alg.fit(X, y)
 
                 pred = alg.predict(np.array([data_prdit]).reshape(1, 1))
-                st.write(f"Predicción para { data_prdit }: {pred}")
+                st.write(f"Predicción para { data_prdit }:", pred[0])
 
                 a1 = alg.coef_
                 a2 = alg.intercept_
 
-                st.write(a1, "x + ", a2)
+                st.write(f"Coeficiente: {a1[0]}")
+                st.write(f"Interceptor: {a2}")
+                st.write("y = ", a1[0], "*x +", a2)
 
                 fig = plt.figure(figsize=(3, 3))
                 plt.scatter(x=df[ParamsX], y=df[ParamsY])
@@ -167,9 +179,22 @@ if fp is not None:
                     st.write('RMSE: ', rmse)
                     st.write('R2: ', r2)
 
-                    st.write(reg.coef_)
-                    st.write('w = ' + str(reg.coef_) +
-                             ', b = ' + str(reg.intercept_))
+                    st.write('Coeficientes: ', reg.coef_)
+                    st.write('Coeficientes = ' + str(reg.coef_) +
+                             ', Interceptor = ' + str(reg.intercept_))
+
+                    a1 = reg.coef_
+                    a2 = reg.intercept_
+
+                    total = ''
+                    contador = 0
+                    for x in a1:
+                        for y2 in x:
+                            total += str(y2) + 'x^'+str(contador) + "+"
+                            contador += 1
+
+                    total = total + str(a2[0])
+                    st.write(f"y = {total} ")
 
                     y_head = reg.predict(x_polynomial)
 
@@ -222,14 +247,24 @@ if fp is not None:
                 st.write('RMSE: ', rmse)
                 st.write('R2: ', r2)
 
-                st.write(reg.coef_)
-                st.write('w = ' + str(reg.coef_) +
-                         ', b = ' + str(reg.intercept_))
+                st.write('Coeficientes:', reg.coef_)
+                st.write('Coeficientes = ' + str(reg.coef_) +
+                         ', Interceptor = ' + str(reg.intercept_))
 
                 a1 = reg.coef_
                 a2 = reg.intercept_
 
                 y = a1 * data_predict + a2
+
+                total2 = ''
+                contador2 = 0
+                for x2 in a1:
+                    for y3 in x2:
+                        total2 += str(y3) + 'x^'+str(contador2) + "+"
+                        contador2 += 1
+
+                    total2 = total2 + str(a2[0])
+                    st.write(f"y = {total2} ")
 
                 total = 0
                 contador = 0
@@ -239,7 +274,7 @@ if fp is not None:
                         contador += 1
 
                 total = total + a2
-                st.write(f"Predicción para  { data_predict }: {total} ")
+                st.write(f"Predicción para  { data_predict }:", total[0])
 
                 y_head = reg.predict(x_polynomial)
 
@@ -262,9 +297,10 @@ if fp is not None:
                 "Seleccionar columnas a clasificar", (df.drop(columns=[choose]).columns))
 
             valuesPredict = np.array([])
-            for column in chooseColumns:
-                valuesPredict = np.append(
-                    valuesPredict, st.text_input("Ingrese el valor de " + column + ": "))
+            if classifier_name == 'Predicción de la tendencia':
+                for column in chooseColumns:
+                    valuesPredict = np.append(
+                        valuesPredict, st.text_input("Ingrese el valor de " + column + ": "))
 
             X = df[chooseColumns]
             y = df[choose]
@@ -328,7 +364,7 @@ if fp is not None:
                 "Seleccionar columnas a clasificar", (df.drop(columns=[choose]).columns))
 
             calculatePredict = st.radio(
-                'Realizar estandarización', ('No', 'Si'))
+                'Realizar Parametrización', ('No', 'Si'))
             valuesPredict = np.array([])
             if calculatePredict == 'Si':
                 for column in chooseColumns:
@@ -353,13 +389,13 @@ if fp is not None:
                 criterion="gini", random_state=42, max_depth=3, min_samples_leaf=5)
             clf = clf.fit(X_train, y_train)
             y_pred = clf.predict(X_test)
-            st.write("Precisión de los datos:")
+            st.write("Precisión del modelo:")
             st.write(accuracy_score(y_test, y_pred))
             if calculatePredict == 'Si':
                 valuesPredict = valuesPredict.reshape(1, -1)
                 pred = clf.predict(valuesPredict)
                 st.write("Predicción: ",
-                         str(le.inverse_transform(pred)))
+                         str(le.inverse_transform(pred)[0]))
             dot_data = tree.export_graphviz(clf, out_file=None)
             st.graphviz_chart(dot_data)
 
@@ -370,7 +406,7 @@ if fp is not None:
                 "Seleccionar columnas a clasificar", (df.drop(columns=[choose]).columns))
 
             calculatePredict = st.radio(
-                'Realizar estandarización', ('No', 'Si'))
+                'Realizar Parametrización', ('No', 'Si'))
             valuesPredict = np.array([])
             if calculatePredict == 'Si':
                 for column in chooseColumns:
@@ -402,9 +438,9 @@ if fp is not None:
             y_pred = clf.predict(X_test)
             score = accuracy_score(y_test, y_pred) * 100
             report = classification_report(y_test, y_pred)
-            st.text("Accuracy of Neural Network model is: ")
+            st.text("Precisión del modelo: ")
             st.write(score, "%")
-            st.text("Report of Neural Network model is: ")
+            st.text("Reporte del modelo: ")
             st.write(report)
 
     except Exception as e:
